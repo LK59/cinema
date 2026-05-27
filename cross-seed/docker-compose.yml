@@ -1,0 +1,16 @@
+networks:
+  media_net:
+    external: true
+
+cross-seed:
+      image: ghcr.io/cross-seed/cross-seed:latest
+      container_name: cross-seed
+      user: "1000:1000"
+      environment:
+        - TZ=Europe/Paris
+      volumes:
+        - /votre/dossier/config/cross-seed-config:/config
+      networks:
+        - media_net
+      restart: unless-stopped
+      command: daemon

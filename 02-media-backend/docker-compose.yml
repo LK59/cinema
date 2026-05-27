@@ -1,0 +1,109 @@
+# =========================
+# NETWORK
+# =========================
+networks:
+  media_net:
+    external: true
+
+# =========================
+# VOLUMES
+# =========================
+volumes:
+  radarr_config:
+    external: true
+  sonarr_config:
+    external: true 
+  jackett_config:
+    external: true
+  bazarr_config:
+    external: true
+  flaresolverr_config:
+    external: true
+  qbittorrent_config:
+    external: true
+      
+services:
+  # =========================
+  # INDEXERS
+  # =========================
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - jackett_config:/config
+    networks:
+      - media_net
+    restart: unless-stopped
+
+  # =========================
+  # CAPTCHA
+  # =========================
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=none
+      - TZ=Europe/Paris
+    volumes:
+      - flaresolverr_config:/config
+    networks:
+      - media_net
+    restart: unless-stopped
+
+    
+  # =========================
+  # SOUS TITRES
+  # =========================
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - bazarr_config:/config
+      - /your/media/directory:/media
+    restart: unless-stopped
+    networks:
+      - media_net 
+    
+  # =========================
+  # GESTION FILMS
+  # =========================
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - radarr_config:/config
+      - /your/media/directory:/media
+    networks:
+      - media_net
+    restart: unless-stopped
+
+  # =========================
+  # GESTION SÉRIES
+  # =========================
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - sonarr_config:/config
+      - /your/media/directory:/media
+    networks:
+      - media_net
+    restart: unless-stopped

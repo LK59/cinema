@@ -1,0 +1,61 @@
+# You have to create externals network and volumes if you want to, in this compose example, I'll use externals volumes & network
+
+networks:
+  media_net:
+    external: true
+
+volumes:
+  gluetun_data:
+    external: true
+  qbittorrent_config:
+    external: true
+
+services:
+  # =========================
+  # VPN TUNNEL (WireGuard)
+  # =========================
+    gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=airvpn # you can also use other VPN but AirVPN can offer a static port forwarding
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WG_PRV_KEY}
+      - WIREGUARD_PRESHARED_KEY=${WG_PRSHRD_KEY}
+      - WIREGUARD_ADDRESSES=XX.XXX.XXX.XXX/32 # Your own VPN endpoint IP address
+      - FIREWALL_VPN_INPUT_PORTS=XXXX # Your own VPN port forwaded
+      - SERVER_COUNTRIES=Germany # Fasted country server with AirVPN from my personal tests
+      - FIREWALL_OUTBOUND_SUBNETS=172.16.0.0/12,192.168.0.0/16,10.0.0.0/8 # Depending of your network configuration
+      - DNS_ADDRESS=1.1.1.1
+      - DOT=off
+      - WIREGUARD_MTU=1420
+      - HEALTH_TARGET_ADDRESS=1.1.1.1
+    volumes:
+      - gluetun_data:/gluetun
+    restart: unless-stopped
+    networks:
+      - media_net
+
+  # =========================
+  # CLIENT TORRENT
+  # =========================
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - WEBUI_PORT=8080
+    volumes:
+      - qbittorrent_config:/config
+      - /your/media/directory/video:/media
+    restart: unless-stopped

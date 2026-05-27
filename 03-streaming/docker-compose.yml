@@ -1,0 +1,54 @@
+# =========================
+# NETWORK
+# =========================
+networks:
+  media_net:
+    external: true
+
+# =========================
+# VOLUMES
+# =========================
+volumes:
+  jellyseerr_config:
+    external: true
+  jellyfin_config:
+    external: true
+
+# =========================
+# SERVICES
+# =========================
+services:
+  # =========================
+  # INTERFACE DEMANDE
+  # =========================
+  jellyseerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: jellyseerr
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - jellyseerr_config:/app/config
+    networks:
+      - media_net
+    restart: unless-stopped
+
+  # =========================
+  # MEDIA SERVER
+  # =========================
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel # Only if your server has a GPU and you want to use accelerated transcode - Intel-specific-driver
+    volumes:
+      - jellyfin_config:/config
+      - /your/media/directory:/media
+      - /dev/shm:/transcode # Only if your server has a GPU and you want to use accelerated transcode - use RAM for transcode cache
+    networks:
+      - media_net
+    devices:
+      - /dev/dri:/dev/dri # Only if your server has a GPU and you want to use accelerated transcode - mount your GPU to Jellyfin container (if your server has only one GPU)
+    restart: unless-stopped
