@@ -22,17 +22,17 @@ Voici un compose exemple du service `cross-seed`. Puisqu'il n'interagit qu'avec 
 ```yaml
 services:
   cross-seed:
-      image: ghcr.io/cross-seed/cross-seed:latest
-      container_name: cross-seed
-      user: "1000:1000" # A changer selon votre utilisateur
-      environment:
-        - TZ=Europe/Paris
-      volumes:
-        - /votre/dossier/config/cross-seed-config:/config
-      networks:
-        - media_net
-      restart: unless-stopped
-      command: daemon
+    image: ghcr.io/cross-seed/cross-seed:latest
+    container_name: cross-seed
+    user: "${PUID}:${PGID}" # défini dans .env
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${CROSS_SEED_CONFIG}:/config
+    networks:
+      - media_net
+    restart: unless-stopped
+    command: daemon
 
 networks:
   media_net:
@@ -43,7 +43,7 @@ networks:
 
 ## ⚙️ 2. Configuration (`config.js`)
 
-Générez le fichier de configuration initial (en lançant le conteneur une première fois, il sera en erreur, c'est normal), puis modifiez uniquement les variables ci-dessous. dans le fichier : /votre/dossier/config/cross-seed-config/config.js.
+Générez le fichier de configuration initial (en lançant le conteneur une première fois, il sera en erreur, c'est normal), puis modifiez uniquement les variables ci-dessous. dans le fichier : `${CROSS_SEED_CONFIG}/config.js`.
 Le fichier config.js sera préfait, ne créez pas de nouvelles lignes, modifiez les lignes existantes
 
 > ⚠️ **Sécurité** : Remplacez les `VOTRE_API_KEY` et mots de passe par vos véritables identifiants.
@@ -115,7 +115,7 @@ Pour que l'injection sur place fonctionne sans erreur :
 
 ## 🛫 4. Démarrage et Maintenance
 
-1. Démarrez le conteneur : `docker-compose up -d cross-seed`
+1. Démarrez le conteneur : `docker compose -f cross-seed/docker-compose.yml up -d`
 
 
 2. Laissez le démon tourner. Il scannera les flux RSS toutes les 10 minutes et fera une recherche approfondie quotidienne (limité à 400 requêtes pour protéger vos comptes trackers).

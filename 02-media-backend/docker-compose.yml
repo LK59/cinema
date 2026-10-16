@@ -12,16 +12,14 @@ volumes:
   radarr_config:
     external: true
   sonarr_config:
-    external: true 
+    external: true
   jackett_config:
     external: true
   bazarr_config:
     external: true
   flaresolverr_config:
     external: true
-  qbittorrent_config:
-    external: true
-      
+
 services:
   # =========================
   # INDEXERS
@@ -30,9 +28,9 @@ services:
     image: lscr.io/linuxserver/jackett:latest
     container_name: jackett
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - jackett_config:/config
     networks:
@@ -48,15 +46,13 @@ services:
     environment:
       - LOG_LEVEL=info
       - LOG_HTML=false
-      - CAPTCHA_SOLVER=none
-      - TZ=Europe/Paris
+      - TZ=${TZ}
     volumes:
       - flaresolverr_config:/config
     networks:
       - media_net
     restart: unless-stopped
 
-    
   # =========================
   # SOUS TITRES
   # =========================
@@ -64,16 +60,16 @@ services:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - bazarr_config:/config
-      - /your/media/directory:/media
+      - ${MEDIA_ROOT}:/media
     restart: unless-stopped
     networks:
-      - media_net 
-    
+      - media_net
+
   # =========================
   # GESTION FILMS
   # =========================
@@ -81,12 +77,12 @@ services:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - radarr_config:/config
-      - /your/media/directory:/media
+      - ${MEDIA_ROOT}:/media
     networks:
       - media_net
     restart: unless-stopped
@@ -98,12 +94,12 @@ services:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - sonarr_config:/config
-      - /your/media/directory:/media
+      - ${MEDIA_ROOT}:/media
     networks:
       - media_net
     restart: unless-stopped
