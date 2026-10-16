@@ -25,7 +25,7 @@ services:
     image: ghcr.io/seerr-team/seerr:latest
     container_name: jellyseerr
     environment:
-      - TZ=Europe/Paris
+      - TZ=${TZ}
     volumes:
       - jellyseerr_config:/app/config
     networks:
@@ -39,13 +39,13 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel # Only if your server has a GPU and you want to use accelerated transcode - Intel-specific-driver
     volumes:
       - jellyfin_config:/config
-      - /your/media/directory:/media
+      - ${MEDIA_ROOT}:/media
       - /dev/shm:/transcode # Only if your server has a GPU and you want to use accelerated transcode - use RAM for transcode cache
     networks:
       - media_net

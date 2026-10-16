@@ -1,4 +1,4 @@
-# You have to create externals network and volumes if you want to, in this compose example, I'll use externals volumes & network
+# Externals network and volumes are used here: run ./setup.sh once (from the repo root) to create them.
 
 networks:
   media_net:
@@ -14,7 +14,7 @@ services:
   # =========================
   # VPN TUNNEL (WireGuard)
   # =========================
-    gluetun:
+  gluetun:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
     cap_add:
@@ -22,14 +22,15 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
+      - TZ=${TZ}
       - VPN_SERVICE_PROVIDER=airvpn # you can also use other VPN but AirVPN can offer a static port forwarding
       - VPN_TYPE=wireguard
       - WIREGUARD_PRIVATE_KEY=${WG_PRV_KEY}
       - WIREGUARD_PRESHARED_KEY=${WG_PRSHRD_KEY}
-      - WIREGUARD_ADDRESSES=XX.XXX.XXX.XXX/32 # Your own VPN endpoint IP address
-      - FIREWALL_VPN_INPUT_PORTS=XXXX # Your own VPN port forwaded
-      - SERVER_COUNTRIES=Germany # Fasted country server with AirVPN from my personal tests
-      - FIREWALL_OUTBOUND_SUBNETS=172.16.0.0/12,192.168.0.0/16,10.0.0.0/8 # Depending of your network configuration
+      - WIREGUARD_ADDRESSES=${WG_ADDRESSES} # Your own VPN endpoint IP address (x.x.x.x/32)
+      - FIREWALL_VPN_INPUT_PORTS=${VPN_FORWARDED_PORT} # Your own VPN port forwarded
+      - SERVER_COUNTRIES=Germany # Fastest country server with AirVPN from my personal tests
+      - FIREWALL_OUTBOUND_SUBNETS=172.16.0.0/12,192.168.0.0/16,10.0.0.0/8 # Depending on your network configuration
       - DNS_ADDRESS=1.1.1.1
       - DOT=off
       - WIREGUARD_MTU=1420
@@ -46,16 +47,17 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
-    network_mode: "service:gluetun"
+    network_mode: "service:gluetun" # No own network interface: if the VPN goes down, traffic stops (killswitch)
     depends_on:
       gluetun:
         condition: service_healthy
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - WEBUI_PORT=8080
+      - TORRENTING_PORT=${VPN_FORWARDED_PORT}
     volumes:
       - qbittorrent_config:/config
-      - /your/media/directory/video:/media
+      - ${MEDIA_ROOT}:/media # MUST be identical in every container (qBittorrent, *arrs, Bazarr, Jellyfin)
     restart: unless-stopped

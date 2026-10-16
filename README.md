@@ -63,3 +63,19 @@ L'infrastructure est divisée en 3 stacks distinctes pour faciliter la maintenan
 
 Vous trouverez les différentes stacks dans les dossiers, notamment les docker-compose pour déployer cette infrastructure.
 Les guides seront ajoutés plus tard pour vous guider dans le déploiement spécifique de chaque élément.
+
+---
+
+## 🚀 Démarrage rapide
+
+```bash
+git clone https://github.com/LK59/cinema && cd cinema
+cp .env.example .env      # renseignez MEDIA_ROOT, PUID/PGID, clés WireGuard, port forwardé
+./setup.sh                # crée le réseau media_net, les volumes externes et lie .env dans chaque stack
+docker compose -f 01-vpn-torrent/docker-compose.yml up -d
+docker compose -f 02-media-backend/docker-compose.yml up -d
+docker compose -f 03-streaming/docker-compose.yml up -d
+docker compose -f cross-seed/docker-compose.yml up -d   # optionnel
+```
+
+> ⚠️ **Chemins média :** `${MEDIA_ROOT}` est monté sur `/media` dans **tous** les conteneurs. Les chemins vus par qBittorrent sont donc identiques à ceux vus par Radarr/Sonarr/Bazarr/Jellyfin : pas de *Remote Path Mapping* nécessaire, et les hardlinks / l'injection sur place fonctionnent (même système de fichiers).
